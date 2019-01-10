@@ -1,7 +1,5 @@
 package com.acme.helpdesk.api.service.impl;
 
-
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
