@@ -21,7 +21,7 @@ public interface TicketService {
 
 	ChangeStatus createChangeStatus(ChangeStatus changeStatus);
 
-	Iterator<ChangeStatus> listChangeStatus(String ticketId);
+	Iterable<ChangeStatus> listChangeStatus(String ticketId);
 
 	Page<Ticket> findByCurrentUser(int page, int count, String userId);
 
