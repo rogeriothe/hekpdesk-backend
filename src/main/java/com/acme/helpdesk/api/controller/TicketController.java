@@ -178,17 +178,16 @@ public class TicketController {
 	@PreAuthorize("hasAnyRole('CUSTOMER')")
 	public ResponseEntity<Response<String>> delete(@PathVariable("id") String id) {
 		Response<String> response = new Response<String>();
-		
+
 		Ticket ticket = ticketService.findById(id);
-		
+
 		if (ticket == null) {
 			response.getErrors().add("Register not found id: " + id);
 			return ResponseEntity.badRequest().body(response);
 		}
-		
+
 		ticketService.delete(id);
 		return ResponseEntity.ok(new Response<String>());
-		
 
 	}
 
