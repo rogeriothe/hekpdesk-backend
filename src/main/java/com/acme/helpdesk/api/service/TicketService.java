@@ -1,7 +1,5 @@
 package com.acme.helpdesk.api.service;
 
-import java.util.Iterator;
-
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 

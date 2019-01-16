@@ -9,6 +9,7 @@ import java.util.Random;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.acme.helpdesk.api.entity.ChangeStatus;
 import com.acme.helpdesk.api.entity.Ticket;
 import com.acme.helpdesk.api.entity.User;
+import com.acme.helpdesk.api.enums.ProfileEnum;
 import com.acme.helpdesk.api.enums.StatusEnum;
 import com.acme.helpdesk.api.response.Response;
 import com.acme.helpdesk.api.security.jwt.JwtTokenUtil;
@@ -178,17 +180,64 @@ public class TicketController {
 	@PreAuthorize("hasAnyRole('CUSTOMER')")
 	public ResponseEntity<Response<String>> delete(@PathVariable("id") String id) {
 		Response<String> response = new Response<String>();
-
 		Ticket ticket = ticketService.findById(id);
-
 		if (ticket == null) {
 			response.getErrors().add("Register not found id: " + id);
 			return ResponseEntity.badRequest().body(response);
 		}
-
 		ticketService.delete(id);
 		return ResponseEntity.ok(new Response<String>());
+	}
 
+	@GetMapping(value = "{page}/{count}")
+	@PreAuthorize("hasAnyRole('CUSTOMER','TECHNICIAN')")
+	public ResponseEntity<Response<Page<Ticket>>> findAll(HttpServletRequest request, @PathVariable("page") int page,
+			@PathVariable("count") int count) {
+		Response<Page<Ticket>> response = new Response<Page<Ticket>>();
+		Page<Ticket> tickets = null;
+		User userRequest = userFromRequest(request);
+		if (userRequest.getProfile().equals(ProfileEnum.ROLE_TECH)) {
+			tickets = ticketService.listTicket(page, count);
+		} else if (userRequest.getProfile().equals(ProfileEnum.ROLE_CUSTOMER)) {
+			tickets = ticketService.findByCurrentUser(page, count, userRequest.getId());
+		}
+		response.setData(tickets);
+		return ResponseEntity.ok(response);
+	}
+
+	@GetMapping(value = "{page}/{count}/{number}/{title}/{status}/{priority}/{assigned}")
+	@PreAuthorize("hasAnyRole('CUSTOMER','TECHNICIAN')")
+	public ResponseEntity<Response<Page<Ticket>>> findByParams(HttpServletRequest request,
+			@PathVariable("page") int page, @PathVariable("count") int count, @PathVariable("number") Integer number,
+			@PathVariable("title") String title, @PathVariable("status") String status,
+			@PathVariable("priority") String priority, @PathVariable("assigned") boolean assigned) {
+
+		title = title.equals("uninformed") ? "" : title;
+		status = status.equals("uninformed") ? "" : status;
+		priority = priority.equals("uninformed") ? "" : priority;
+
+		Response<Page<Ticket>> response = new Response<Page<Ticket>>();
+		Page<Ticket> tickets = null;
+
+		if (number > 0) {
+			tickets = ticketService.findByNumber(page, count, number);
+		} else {
+			User userRequest = userFromRequest(request);
+			if (userRequest.getProfile().equals(ProfileEnum.ROLE_TECH)) {
+				if (assigned) {
+					tickets = ticketService.findByParameterAndAssignedUser(page, count, title, status, priority,
+							userRequest.getId());
+				} else {
+					tickets = ticketService.findByParameters(page, count, title, status, priority);
+				}
+
+			} else if (userRequest.getProfile().equals(ProfileEnum.ROLE_CUSTOMER)) {
+				tickets = ticketService.findByParametersAndCurrentUser(page, count, title, status, priority,
+						userRequest.getId());
+			}
+		}
+		response.setData(tickets);
+		return ResponseEntity.ok(response);
 	}
 
 }

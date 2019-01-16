@@ -1,7 +1,5 @@
 package com.acme.helpdesk.api.service.impl;
 
-import java.util.Iterator;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -55,7 +53,7 @@ public class TicketServiceImpl implements TicketService {
 	}
 
 	@Override
-	public Iterator<ChangeStatus> listChangeStatus(String ticketId) {
+	public Iterable<ChangeStatus> listChangeStatus(String ticketId) {
 
 		return this.changeStatusRepository.findByTicketIdOrderByDateChangeStatusDesc(ticketId);
 	}
