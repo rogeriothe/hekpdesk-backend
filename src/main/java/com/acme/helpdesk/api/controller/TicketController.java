@@ -245,17 +245,13 @@ public class TicketController {
 	@PreAuthorize("hasAnyRole('CUSTOMER','TECHNICIAN')")
 	public ResponseEntity<Response<Ticket>> changeStatus(@PathVariable("id") String id, @PathVariable String status,
 			HttpServletRequest request, @RequestBody Ticket ticket, BindingResult result) {
-
 		Response<Ticket> response = new Response<Ticket>();
-
 		try {
-
 			validateChangeStatus(id, status, result);
 			if (result.hasErrors()) {
 				result.getAllErrors().forEach(error -> response.getErrors().add(error.getDefaultMessage()));
 				return ResponseEntity.badRequest().body(response);
 			}
-
 			Ticket ticketCurrent = ticketService.findById(id);
 			ticketCurrent.setStatus(StatusEnum.getStatus(status));
 			if (status.equals("Assigned")) {
